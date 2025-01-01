@@ -34,11 +34,11 @@ This is an ongoing project and will be updated as I work on it.
 
 ## Contributing
 
-Contributions are welcome! Please fork the repository and create a pull request with your changes.
+This is a personal project and as such, no contributions are welcome at the moment.
 
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details. (to be added)
 
 ## Contact
 
