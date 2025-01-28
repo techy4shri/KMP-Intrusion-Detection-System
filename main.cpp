@@ -1,12 +1,12 @@
 #include "kmp.h"
 #include "packet_capture.h"
+#include "multithreaded_packet_processor.h"
 #include <iostream>
 #include <string>
 #include <vector>
 #include <chrono>
 #include <ctime>
 #include <fstream>
-#include <thread>
 
 // Define known malicious patterns
 const std::vector<std::string> THREAT_PATTERNS = {
@@ -27,10 +27,9 @@ void logAlert(const std::string& pattern, size_t offset) {
               << "' found at offset " << offset << std::endl;
 }
 
-void processPacket(const unsigned char* data, int length) {
+// Packet processing callback
+void processPacketCallback(const std::string& packetData) {
     try {
-        std::string packetData(reinterpret_cast<const char*>(data), length);
-        
         for (const auto& pattern : THREAT_PATTERNS) {
             KMP kmp(pattern);
             auto matches = kmp.search(packetData);
@@ -39,7 +38,7 @@ void processPacket(const unsigned char* data, int length) {
                 std::cout << "\n[!] INTRUSION DETECTED" << std::endl;
                 std::cout << "Pattern: " << pattern << std::endl;
                 std::cout << "Locations: ";
-                
+
                 for (auto offset : matches) {
                     std::cout << offset << " ";
                     logAlert(pattern, offset);
@@ -54,12 +53,19 @@ void processPacket(const unsigned char* data, int length) {
 
 int main() {
     try {
+        MultithreadedPacketProcessor processor(4, processPacketCallback);
+        processor.start();
+
         PacketCapture capturer;
         std::cout << "KMP-based Intrusion Detection System" << std::endl;
         std::cout << "Monitoring network traffic..." << std::endl;
         std::cout << "Loaded " << THREAT_PATTERNS.size() << " threat patterns" << std::endl;
 
-        if (!capturer.startCapture("eth0", processPacket)) {
+        auto captureResult = capturer.startCapture("eth0", [&](const unsigned char* data, int length) {
+            std::string packetData(reinterpret_cast<const char*>(data), length);
+            processor.enqueuePacket(packetData);
+        });
+        if (!captureResult) {
             throw std::runtime_error("Failed to start packet capture");
         }
 
@@ -72,5 +78,6 @@ int main() {
         std::cerr << "Fatal error: " << e.what() << std::endl;
         return 1;
     }
+
     return 0;
 }
