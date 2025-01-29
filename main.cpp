@@ -8,7 +8,7 @@
 #include <ctime>
 #include <fstream>
 
-// Define known malicious patterns
+// Define known malicious patterns , this will be updated as I go
 const std::vector<std::string> THREAT_PATTERNS = {
     "malicious-pattern",
     "sql-injection",
@@ -54,6 +54,7 @@ void processPacketCallback(const std::string& packetData) {
 int main() {
     try {
         MultithreadedPacketProcessor processor(4, processPacketCallback);
+        bool captureResult;
         processor.start();
 
         PacketCapture capturer;
@@ -61,10 +62,13 @@ int main() {
         std::cout << "Monitoring network traffic..." << std::endl;
         std::cout << "Loaded " << THREAT_PATTERNS.size() << " threat patterns" << std::endl;
 
-        auto captureResult = capturer.startCapture("eth0", [&](const unsigned char* data, int length) {
-            std::string packetData(reinterpret_cast<const char*>(data), length);
-            processor.enqueuePacket(packetData);
-        });
+    void packetHandler(const unsigned char* data, int length); {
+    std::string packetData(reinterpret_cast<const char*>(data), length);
+    processor.enqueuePacket(packetData);
+    }
+
+capturer.startCapture("eth0", packetHandler);
+
         if (!captureResult) {
             throw std::runtime_error("Failed to start packet capture");
         }

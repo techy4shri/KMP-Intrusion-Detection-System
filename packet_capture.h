@@ -2,14 +2,17 @@
 #define PACKET_CAPTURE_H
 
 #include <string>
+#include <functional>
 
 class PacketCapture {
 public:
-    
-    void startCapture(const std::string& interface, void (*callback)(const unsigned char*, int));
+    void startCapture(const std::string& interface, std::function<void(const unsigned char*, int)> callback);
+    void handlePacket(const unsigned char* data, int length);
+    bool isCapturing() const;
 
 private:
-    void handlePacket(const unsigned char* data, int length);
+    bool capturing = false;
+    std::function<void(const unsigned char*, int)> callback;
 };
 
 #endif

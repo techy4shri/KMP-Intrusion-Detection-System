@@ -2,6 +2,22 @@
 #include <pcap.h>
 #include <iostream>
 
+class PacketCapture {
+
+public:
+
+    void startCapture(const std::string& interface, std::function<void(const unsigned char*, int)> callback);
+
+    bool isCapturing() const; // Add this method declaration
+
+    // Add other methods and members here
+
+private:
+
+    bool capturing = false; // Add this member variable
+
+};
+
 // Callback function for processing packets
 void packetCallback(u_char* args, const struct pcap_pkthdr* header, const u_char* packet) {
     auto handler = reinterpret_cast<PacketCapture*>(args);
@@ -9,7 +25,10 @@ void packetCallback(u_char* args, const struct pcap_pkthdr* header, const u_char
 }
 
 // Start capturing packets
-void PacketCapture::startCapture(const std::string& interface, void (*callback)(const unsigned char*, int)) {
+void PacketCapture::startCapture(const std::string& interface, std::function<void(const unsigned char*, int)> callback) {
+
+    capturing = true; // Set capturing to true when capture starts
+
     char errbuf[PCAP_ERRBUF_SIZE];
     pcap_t* handle = pcap_open_live(interface.c_str(), BUFSIZ, 1, 1000, errbuf);
 
